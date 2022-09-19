@@ -1,6 +1,6 @@
 seaborn
 matplotlib
-streamlit == 0.87
+streamlit==1.12.2
 pandas == 1.2.4
 keybert
 flair
