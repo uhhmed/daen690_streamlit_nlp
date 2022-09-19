@@ -42,13 +42,17 @@ def _max_width_():
 c30, = st.columns(1)
 
 with c30:
-    # st.image("logo.png", width=400)
     st.title("DAEN 690 Team Concorde: NLP Algorithms")
-    st.header("")
 
+
+logo1, logo2 = st.columns([3, 19])
+with logo1:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/George_Mason_University_logo.svg/2560px-George_Mason_University_logo.svg.png", width=120)
+with logo2:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Seal_of_the_United_States_Federal_Aviation_Administration.svg/1200px-Seal_of_the_United_States_Federal_Aviation_Administration.svg.png", width=120)
 
 st.markdown("")
-st.markdown("## 📌 Paste text")
+st.markdown("## ✏️ Paste text")
 
 with st.form(key="my_form"):
 
@@ -182,6 +186,7 @@ if min_Ngrams > max_Ngrams:
     st.warning("min_Ngrams can't be greater than max_Ngrams")
     st.stop()
 
+
 with st.spinner('Extracting Keywords...'):
 
     st.header("")
@@ -300,20 +305,3 @@ with st.spinner('Extracting Keywords...'):
             st.bar_chart(df, x="Keyword/Keyphrase", y="Relevancy")
 
 st.header("")
-
-
-print(df)
-df.index += 1
-
-
-c1, c2, c3 = st.columns([1, 3, 1])
-
-# format_dictionary = {
-#     "Relevancy": "{:.1%}",
-# }
-
-# df = df.format(format_dictionary)
-
-# with c2:
-# st.write(df)
-# st.table(df)
