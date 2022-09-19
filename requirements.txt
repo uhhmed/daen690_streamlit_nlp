@@ -6,3 +6,4 @@ keybert
 flair
 click<8
 rake-nltk
+yake

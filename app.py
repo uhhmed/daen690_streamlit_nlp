@@ -2,19 +2,19 @@ from ast import keyword
 import streamlit as st
 import numpy as np
 from pandas import DataFrame
-from keybert import KeyBERT
-# For Flair (Keybert)
-from flair.embeddings import TransformerDocumentEmbeddings
 import seaborn as sns
-# For RAKE Algo
-from rake_nltk import Rake
-
-import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
-
 import os
 import json
+
+import nltk
+from keybert import KeyBERT
+from flair.embeddings import TransformerDocumentEmbeddings
+from rake_nltk import Rake
+import yake
+from yake.highlight import TextHighlighter
+
+nltk.download('stopwords')
+nltk.download('punkt')
 
 
 st.set_page_config(
@@ -54,8 +54,7 @@ with st.form(key="my_form"):
     with c1:
         ModelType = st.radio(
             "Choose your model",
-            ["KeyBERT", "DistilBERT", "RAKE"],
-            help="At present, you can choose between 2 models (Flair or DistilBERT) to embed your text. More to come!",
+            ["KeyBERT", "DistilBERT", "RAKE", "YAKE"]
         )
 
         if ModelType == "KeyBERT":
@@ -71,6 +70,13 @@ with st.form(key="my_form"):
             @st.cache(allow_output_mutation=True)
             def load_model():
                 return Rake()
+
+            kw_model = load_model()
+
+        elif ModelType == "YAKE":
+            @st.cache(allow_output_mutation=True)
+            def load_model():
+                return yake.KeywordExtractor()
 
             kw_model = load_model()
 
@@ -183,7 +189,9 @@ if ModelType == "KeyBERT" or ModelType == "DistilBERT":
         top_n=top_N,
         diversity=Diversity,
     )
-    # st.write("Keywords: " + str(keywords))
+    th = TextHighlighter(max_ngram_size=max_Ngrams,
+                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+    st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
     df = (
         DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
         .sort_values(by="Relevancy", ascending=False)
@@ -195,7 +203,10 @@ if ModelType == "RAKE":
     kw_model.extract_keywords_from_text(doc)
     # st.write("RESULT" + result)
     keywords = kw_model.get_ranked_phrases_with_scores()
-    # st.write("Keywords: " + str(keywords))
+    th = TextHighlighter(max_ngram_size=max_Ngrams,
+                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+    st.markdown(th.highlight(doc, [tuple[1]
+                for tuple in keywords]), unsafe_allow_html=True)
     df = (
         DataFrame(keywords, columns=["Relevancy", "Keyword/Keyphrase"])
         .sort_values(by="Relevancy", ascending=False)
@@ -203,6 +214,21 @@ if ModelType == "RAKE":
     )
     # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
     df = df[["Keyword/Keyphrase", "Relevancy"]]
+
+if ModelType == "YAKE":
+    kw_model = yake.KeywordExtractor(n=max_Ngrams, top=top_N,)
+    keywords = kw_model.extract_keywords(doc)
+
+    th = TextHighlighter(max_ngram_size=max_Ngrams,
+                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+    st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
+
+    st.info('Lower Score indicates better relevance in the "YAKE" model.', icon="ℹ️")
+    df = (
+        DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
+        .sort_values(by="Relevancy", ascending=True)
+        .reset_index(drop=True)
+    )
 
 st.markdown(f'## Model "{ModelType}" Results')
 
