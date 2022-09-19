@@ -54,11 +54,11 @@ with st.form(key="my_form"):
     with c1:
         ModelType = st.radio(
             "Choose your model",
-            ["KeyBERT (Default)", "DistilBERT", "RAKE"],
+            ["KeyBERT", "DistilBERT", "RAKE"],
             help="At present, you can choose between 2 models (Flair or DistilBERT) to embed your text. More to come!",
         )
 
-        if ModelType == "KeyBERT (Default)":
+        if ModelType == "KeyBERT":
             # kw_model = KeyBERT(model=roberta)
 
             @st.cache(allow_output_mutation=True)
@@ -174,7 +174,7 @@ if min_Ngrams > max_Ngrams:
     st.warning("min_Ngrams can't be greater than max_Ngrams")
     st.stop()
 
-if ModelType == "KeyBERT (Default)" or ModelType == "DistilBERT":
+if ModelType == "KeyBERT" or ModelType == "DistilBERT":
     keywords = kw_model.extract_keywords(
         doc,
         keyphrase_ngram_range=(min_Ngrams, max_Ngrams),
@@ -183,7 +183,7 @@ if ModelType == "KeyBERT (Default)" or ModelType == "DistilBERT":
         top_n=top_N,
         diversity=Diversity,
     )
-    st.write("Keywords: " + str(keywords))
+    # st.write("Keywords: " + str(keywords))
     df = (
         DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
         .sort_values(by="Relevancy", ascending=False)
@@ -191,11 +191,11 @@ if ModelType == "KeyBERT (Default)" or ModelType == "DistilBERT":
     )
 
 if ModelType == "RAKE":
-    st.write("RAKE selected")
+    # st.write("RAKE selected")
     kw_model.extract_keywords_from_text(doc)
     # st.write("RESULT" + result)
     keywords = kw_model.get_ranked_phrases_with_scores()
-    st.write("Keywords: " + str(keywords))
+    # st.write("Keywords: " + str(keywords))
     df = (
         DataFrame(keywords, columns=["Relevancy", "Keyword/Keyphrase"])
         .sort_values(by="Relevancy", ascending=False)
@@ -204,7 +204,7 @@ if ModelType == "RAKE":
     # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
     df = df[["Keyword/Keyphrase", "Relevancy"]]
 
-st.markdown("## Results")
+st.markdown(f'## Model "{ModelType}" Results')
 
 st.header("")
 
@@ -231,5 +231,5 @@ c1, c2, c3 = st.columns([1, 3, 1])
 # df = df.format(format_dictionary)
 
 with c2:
-    st.write(df)
-# st.table(df)
+    # st.write(df)
+    st.table(df)
