@@ -19,6 +19,7 @@ nltk.download('punkt')
 
 st.set_page_config(
     page_title="DAEN 690 Team Concorde: NLP Algorithms",
+    layout="wide"
 )
 
 
@@ -36,7 +37,7 @@ def _max_width_():
     )
 
 
-_max_width_()
+# _max_width_()
 
 c30, = st.columns(1)
 
@@ -48,6 +49,7 @@ with c30:
 
 st.markdown("")
 st.markdown("## 📌 Paste text")
+
 with st.form(key="my_form"):
 
     ce, c1, ce, c2, c3 = st.columns([0.07, 1, 0.07, 5, 0.07])
