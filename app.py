@@ -38,7 +38,7 @@ def _max_width_():
 
 _max_width_()
 
-c30, c31, c32 = st.columns([2.5, 1, 3])
+c30, = st.columns(1)
 
 with c30:
     # st.image("logo.png", width=400)
@@ -180,57 +180,86 @@ if min_Ngrams > max_Ngrams:
     st.warning("min_Ngrams can't be greater than max_Ngrams")
     st.stop()
 
-if ModelType == "KeyBERT" or ModelType == "DistilBERT":
-    keywords = kw_model.extract_keywords(
-        doc,
-        keyphrase_ngram_range=(min_Ngrams, max_Ngrams),
-        use_mmr=mmr,
-        stop_words=StopWords,
-        top_n=top_N,
-        diversity=Diversity,
-    )
-    th = TextHighlighter(max_ngram_size=max_Ngrams,
-                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
-    st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
-    df = (
-        DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
-        .sort_values(by="Relevancy", ascending=False)
-        .reset_index(drop=True)
-    )
+with st.spinner('Extracting Keywords...'):
 
-if ModelType == "RAKE":
-    # st.write("RAKE selected")
-    kw_model.extract_keywords_from_text(doc)
-    # st.write("RESULT" + result)
-    keywords = kw_model.get_ranked_phrases_with_scores()
-    th = TextHighlighter(max_ngram_size=max_Ngrams,
-                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
-    st.markdown(th.highlight(doc, [tuple[1]
-                for tuple in keywords]), unsafe_allow_html=True)
-    df = (
-        DataFrame(keywords, columns=["Relevancy", "Keyword/Keyphrase"])
-        .sort_values(by="Relevancy", ascending=False)
-        .reset_index(drop=True)
-    )
-    # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
-    df = df[["Keyword/Keyphrase", "Relevancy"]]
+    st.header("")
+    st.markdown(f'## 🤖 Model "{ModelType}" Results: ')
+    col1, col2 = st.columns(2)
 
-if ModelType == "YAKE":
-    kw_model = yake.KeywordExtractor(n=max_Ngrams, top=top_N,)
-    keywords = kw_model.extract_keywords(doc)
+    # Add styling
+    cmGreen = sns.light_palette("green", as_cmap=True)
+    cmRed = sns.light_palette("red", as_cmap=True)
 
-    th = TextHighlighter(max_ngram_size=max_Ngrams,
-                         highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
-    st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
+    if ModelType == "KeyBERT" or ModelType == "DistilBERT":
+        keywords = kw_model.extract_keywords(
+            doc,
+            keyphrase_ngram_range=(min_Ngrams, max_Ngrams),
+            use_mmr=mmr,
+            stop_words=StopWords,
+            top_n=top_N,
+            diversity=Diversity,
+        )
+        with col1:
+            th = TextHighlighter(max_ngram_size=max_Ngrams,
+                                 highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+            st.header("")
+            st.markdown("### 💬 Extracted Keywords: ")
+            st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
 
-    st.info('Lower Score indicates better relevance in the "YAKE" model.', icon="ℹ️")
-    df = (
-        DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
-        .sort_values(by="Relevancy", ascending=True)
-        .reset_index(drop=True)
-    )
+        df = (
+            DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
+            .sort_values(by="Relevancy", ascending=False)
+            .reset_index(drop=True)
+        )
+        df = df.style.background_gradient(
+            cmap=cmGreen,
+            subset=[
+                "Relevancy",
+            ],
+        )
 
-st.markdown(f'## Model "{ModelType}" Results')
+        with col2:
+            st.header("")
+            st.markdown("### 🧮 Relevency Scores: ")
+            st.table(df)
+
+    if ModelType == "RAKE":
+        # st.write("RAKE selected")
+        kw_model.extract_keywords_from_text(doc)
+        keywords = kw_model.get_ranked_phrases_with_scores()
+
+        th = TextHighlighter(max_ngram_size=max_Ngrams,
+                             highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+        st.header("")
+        st.markdown("### 💬 Extracted Keywords: ")
+        st.markdown(th.highlight(doc, [tuple[1]
+                    for tuple in keywords]), unsafe_allow_html=True)
+        df = (
+            DataFrame(keywords, columns=["Relevancy", "Keyword/Keyphrase"])
+            .sort_values(by="Relevancy", ascending=False)
+            .reset_index(drop=True)
+        )
+        # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
+        df = df[["Keyword/Keyphrase", "Relevancy"]]
+
+    if ModelType == "YAKE":
+        kw_model = yake.KeywordExtractor(n=max_Ngrams, top=top_N,)
+        keywords = kw_model.extract_keywords(doc)
+
+        th = TextHighlighter(max_ngram_size=max_Ngrams,
+                             highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+        st.header("")
+        st.markdown("### 💬 Extracted Keywords: ")
+        st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
+
+        st.info(
+            'Lower Score indicates better relevance in the "YAKE" model.', icon="ℹ️")
+        df = (
+            DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
+            .sort_values(by="Relevancy", ascending=True)
+            .reset_index(drop=True)
+        )
+
 
 st.header("")
 
@@ -238,15 +267,6 @@ st.header("")
 print(df)
 df.index += 1
 
-# Add styling
-cmGreen = sns.light_palette("green", as_cmap=True)
-cmRed = sns.light_palette("red", as_cmap=True)
-df = df.style.background_gradient(
-    cmap=cmGreen,
-    subset=[
-        "Relevancy",
-    ],
-)
 
 c1, c2, c3 = st.columns([1, 3, 1])
 
@@ -256,6 +276,6 @@ c1, c2, c3 = st.columns([1, 3, 1])
 
 # df = df.format(format_dictionary)
 
-with c2:
-    # st.write(df)
-    st.table(df)
+# with c2:
+# st.write(df)
+# st.table(df)
