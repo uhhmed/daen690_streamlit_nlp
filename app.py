@@ -204,7 +204,7 @@ if ModelType == "RAKE":
     # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
     df = df[["Keyword/Keyphrase", "Relevancy"]]
 
-st.markdown("## **🎈 Check & download results **")
+st.markdown("## Results")
 
 st.header("")
 
