@@ -10,8 +10,8 @@ import seaborn as sns
 from rake_nltk import Rake
 
 import nltk
-# nltk.download('stopwords')
-# nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('punkt')
 
 import os
 import json
