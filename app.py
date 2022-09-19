@@ -183,8 +183,8 @@ if min_Ngrams > max_Ngrams:
 with st.spinner('Extracting Keywords...'):
 
     st.header("")
-    st.markdown(f'## 🤖 Model "{ModelType}" Results: ')
-    col1, col2 = st.columns(2)
+    st.header(f'## 🤖 Model Results: "{ModelType}" ')
+    col1, col2, col3 = st.columns(3)
 
     # Add styling
     cmGreen = sns.light_palette("green", as_cmap=True)
@@ -203,7 +203,7 @@ with st.spinner('Extracting Keywords...'):
             th = TextHighlighter(max_ngram_size=max_Ngrams,
                                  highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
             st.header("")
-            st.markdown("### 💬 Extracted Keywords: ")
+            st.subheader("### 💬 Extracted Keywords: ")
             st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
 
         df = (
@@ -220,20 +220,26 @@ with st.spinner('Extracting Keywords...'):
 
         with col2:
             st.header("")
-            st.markdown("### 🧮 Relevency Scores: ")
+            st.subheader("### 🧮 Relevance Scores: ")
             st.table(df)
+
+        with col3:
+            st.header("")
+            st.subheader("### 📊 Keywords by relevance: ")
+            st.bar_chart(df, x="Keyword/Keyphrase", y="Relevancy")
 
     if ModelType == "RAKE":
         # st.write("RAKE selected")
         kw_model.extract_keywords_from_text(doc)
         keywords = kw_model.get_ranked_phrases_with_scores()
 
-        th = TextHighlighter(max_ngram_size=max_Ngrams,
-                             highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
-        st.header("")
-        st.markdown("### 💬 Extracted Keywords: ")
-        st.markdown(th.highlight(doc, [tuple[1]
-                    for tuple in keywords]), unsafe_allow_html=True)
+        with col1:
+            th = TextHighlighter(max_ngram_size=max_Ngrams,
+                                 highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+            st.header("")
+            st.subheader("### 💬 Extracted Keywords: ")
+            st.markdown(th.highlight(doc, [tuple[1]
+                        for tuple in keywords]), unsafe_allow_html=True)
         df = (
             DataFrame(keywords, columns=["Relevancy", "Keyword/Keyphrase"])
             .sort_values(by="Relevancy", ascending=False)
@@ -241,25 +247,55 @@ with st.spinner('Extracting Keywords...'):
         )
         # To swap back the position of the columns to ["Keyword/Keyphrase", "Relevancy"].
         df = df[["Keyword/Keyphrase", "Relevancy"]]
+        df = df.style.background_gradient(
+            cmap=cmGreen,
+            subset=[
+                "Relevancy",
+            ],
+        )
+        with col2:
+            st.header("")
+            st.subheader("### 🧮 Relevance Scores: ")
+            st.table(df)
+
+        with col3:
+            st.header("")
+            st.subheader("### 📊 Keywords by relevance: ")
+            st.bar_chart(df, x="Keyword/Keyphrase", y="Relevancy")
 
     if ModelType == "YAKE":
         kw_model = yake.KeywordExtractor(n=max_Ngrams, top=top_N,)
         keywords = kw_model.extract_keywords(doc)
 
-        th = TextHighlighter(max_ngram_size=max_Ngrams,
-                             highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
-        st.header("")
-        st.markdown("### 💬 Extracted Keywords: ")
-        st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
+        with col1:
+            th = TextHighlighter(max_ngram_size=max_Ngrams,
+                                 highlight_pre="<span style='background-color: #FFFF00; color: black'>", highlight_post="</span>")
+            st.header("")
+            st.markdown("### 💬 Extracted Keywords: ")
+            st.markdown(th.highlight(doc, keywords), unsafe_allow_html=True)
 
-        st.info(
-            'Lower Score indicates better relevance in the "YAKE" model.', icon="ℹ️")
         df = (
             DataFrame(keywords, columns=["Keyword/Keyphrase", "Relevancy"])
             .sort_values(by="Relevancy", ascending=True)
             .reset_index(drop=True)
         )
+        df = df.style.background_gradient(
+            cmap=cmGreen,
+            subset=[
+                "Relevancy",
+            ],
+        )
+        with col2:
+            st.header("")
+            st.markdown("### 🧮 Relevance Scores: ")
+            st.info(
+                'Lower Score indicates better relevance in the "YAKE" model.', icon="ℹ️")
+            st.table(df)
 
+        with col3:
+            st.header("")
+            st.subheader("### 📊 Keywords by relevance: ")
+            st.bar_chart(df, x="Keyword/Keyphrase", y="Relevancy")
 
 st.header("")
 
